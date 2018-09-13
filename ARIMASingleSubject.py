@@ -21,6 +21,7 @@ from statsmodels.tsa.ar_model import AR
 from statsmodels.tsa.arima_model import ARIMA
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
+import os
 import uuid
 import time
 from math import sqrt
@@ -85,7 +86,9 @@ def projectionARIMA (asfrdata, p, d, q):
 plt.style.use('fivethirtyeight')
 
 #DATA LOAD
-with open('D:\POLYRIFIC\DataScience\PaymentPrediction\CSV\Ilham.csv') as csv:
+fn = os.path.join(os.path.dirname(__file__), 'Ilham.csv')
+
+with open(fn) as csv:
     df = pd.read_csv(csv, delimiter=';')
 
 #GROUP by Week calculate weekly hours
@@ -113,6 +116,6 @@ plt.show()
 #scaler = preprocessing.StandardScaler()
 
 
-p, d, q= 0, 0, 3
+p, d, q= 0, 0, 2
 result= projectionARIMA(df['Hours'], p, d, q)
 print('RMSE: %.3f ' % (result))
