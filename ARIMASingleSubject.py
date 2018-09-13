@@ -29,6 +29,7 @@ import datetime
 from sklearn import metrics
 from sklearn import preprocessing
 
+#START FUNCTION
 def predict(coef, history):
 	yhat = 0.0
 	for i in range(1, len(coef)+1):
@@ -37,8 +38,6 @@ def predict(coef, history):
 
 def projectionARIMA (asfrdata, p, d, q):
     X = asfrdata    
-
-    #currentmodel= 'ARIMA %d, %d, %d' % (p, d, q)
     
     size = int(len(X) * 0.66)
     train, test = X[0:size], X[size:len(X)]
@@ -61,11 +60,12 @@ def projectionARIMA (asfrdata, p, d, q):
     for t in range(len(test)):
         #ARIMA
         model = ARIMA(history, order=(p,d,q))
-        model_fit = model.fit(trend='c', disp=False)
+        model_fit = model.fit(trend='nc', disp=False)
 
         ma_coef = model_fit.maparams
         resid = model_fit.resid
         yhat = predict(ma_coef, resid)
+        #yhat = model_fit.predict(ma_coef, resid, type='levels')
         predictions.append(yhat)
         
         #obs = test
@@ -82,11 +82,13 @@ def projectionARIMA (asfrdata, p, d, q):
     pyplot.plot(predictions, color='red')
     pyplot.show()
     return rmse
-
+#END FUNCTION
+    
+#START MAIN
 plt.style.use('fivethirtyeight')
 
 #DATA LOAD
-fn = os.path.join(os.path.dirname(__file__), 'Ilham.csv')
+fn = os.path.join(os.path.dirname(__file__), 'Steffi.csv')
 
 with open(fn) as csv:
     df = pd.read_csv(csv, delimiter=';')
@@ -94,28 +96,16 @@ with open(fn) as csv:
 #GROUP by Week calculate weekly hours
 tes = df.groupby(['Week'])['Hours'].sum()
 tes.index = pd.DatetimeIndex(end=pd.datetime.today(), periods=len(tes), freq='1D')
-
 df['Date'] = df['Date'].apply(lambda x : dt.strptime(x, '%d/%m/%Y').strftime('%Y-%m-%d'))
-
-print(tes)
-
-print(df)
-
 df['Date'] = pd.to_datetime(df['Date']) - pd.to_timedelta(7, unit='d')
-
-print(df)
 df = df.groupby(['Week', pd.Grouper(key='Date', freq='W-FRI')])['Hours'].sum().reset_index().sort_values('Week')
-
-#print(df)
 df.set_index('Week')
 
+#SHOW plotting
 tes.plot(figsize=(15, 6))
-
 plt.show()
 
-#scaler = preprocessing.StandardScaler()
-
-
+#COUNT prediction
 p, d, q= 0, 0, 2
 result= projectionARIMA(df['Hours'], p, d, q)
 print('RMSE: %.3f ' % (result))
