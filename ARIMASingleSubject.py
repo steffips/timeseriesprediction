@@ -30,6 +30,9 @@ from sklearn import metrics
 from sklearn import preprocessing
 
 #START FUNCTION
+def smape(A, F):
+    return np.sum(np.abs(F - A)) / np.sum(A + F)*100
+
 def predict(coef, history):
 	yhat = 0.0
 	for i in range(1, len(coef)+1):
@@ -81,31 +84,34 @@ def projectionARIMA (asfrdata, p, d, q):
     pyplot.plot(test)
     pyplot.plot(predictions, color='red')
     pyplot.show()
-    return rmse
+    return rmse, test, predictions
+
 #END FUNCTION
     
 #START MAIN
 plt.style.use('fivethirtyeight')
 
 #DATA LOAD
-fn = os.path.join(os.path.dirname(__file__), 'Steffi.csv')
-
+fn = os.path.join(os.path.dirname(__file__), 'Zoel.csv')
 with open(fn) as csv:
     df = pd.read_csv(csv, delimiter=';')
 
 #GROUP by Week calculate weekly hours
-tes = df.groupby(['Week'])['Hours'].sum()
-tes.index = pd.DatetimeIndex(end=pd.datetime.today(), periods=len(tes), freq='1D')
-df['Date'] = df['Date'].apply(lambda x : dt.strptime(x, '%d/%m/%Y').strftime('%Y-%m-%d'))
-df['Date'] = pd.to_datetime(df['Date']) - pd.to_timedelta(7, unit='d')
-df = df.groupby(['Week', pd.Grouper(key='Date', freq='W-FRI')])['Hours'].sum().reset_index().sort_values('Week')
-df.set_index('Week')
+#tes = df.groupby(['Week'])['Hours'].sum()
+#tes.index = pd.DatetimeIndex(end=pd.datetime.today(), periods=len(tes), freq='1D')
+#df['Date'] = df['Date'].apply(lambda x : dt.strptime(x, '%d/%m/%Y').strftime('%Y-%m-%d'))
+#df['Date'] = pd.to_datetime(df['Date']) - pd.to_timedelta(7, unit='d')
+#df = df.groupby(['Week', pd.Grouper(key='Date', freq='W-FRI')])['Hours'].sum().reset_index().sort_values('Week')
+#df.set_index('Week')
 
 #SHOW plotting
-tes.plot(figsize=(15, 6))
-plt.show()
+#tes.plot(figsize=(15, 6))
+#plt.show()
 
 #COUNT prediction
-p, d, q= 0, 0, 2
-result= projectionARIMA(df['Hours'], p, d, q)
-print('RMSE: %.3f ' % (result))
+p, d, q= 0, 0 , 2
+result, testData, predictionsData = projectionARIMA(df['Hours'], p, d, q)
+smapeScore = smape(testData['Hours'],predictionsData)
+print('Test SMAPE: %.3f' % smapeScore)
+print(len(df['Hours']))
+#print('RMSE: %.3f ' % (result))
